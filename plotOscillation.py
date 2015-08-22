@@ -41,8 +41,18 @@ class nu:
         self.index = index
         self.name = label    
     
-
 def main():
+    plt.ion()
+    mean = 10
+    sigma = 5
+    vals = [generateEnergyDistribution(mean, sigma) for i in xrange(100000)]
+    plt.hist(vals, bins=100)
+
+    
+
+    
+        
+def oldmain():
     """"
     L/E needs to be (km)/(GeV)
     Or (m)/(MeV)
@@ -65,7 +75,7 @@ def main():
     #Losc = 983459.230639132 #156522.39788557024 #49822.626656169865
     Losc = 100*math.pi*E/(1.27*min(dmSquared_21, dmSquared_32))
     
-    plotOscillations(nu_e, Losc, E)
+    plotOscillations(nu_e, Losc, E) #, savePlot=True)
     #plotOscillations(nu_mu, Losc, E)
     #plotOscillations(nu_tau, Losc, E)
 
@@ -82,8 +92,15 @@ def main():
     print p_e_e, p_e_mu, p_e_tau, sum([p_e_e, p_e_mu, p_e_tau])
 
 
-    
-    
+
+
+def generateEnergyDistribution(mean, sigma):
+    """
+    Starting with simple gaussian distribution, just for now"
+    """
+    x = np.random.standard_normal()
+    x = sigma*x + mean
+    return x
                         
 
 def cumulativeMeanArray(arr):
@@ -124,7 +141,7 @@ def integrateOverDistance(arr, distance, dx):
         #    break
     return newArr
 
-def plotOscillations(nu_init, Lmax, E, drawPlot=True):
+def plotOscillations(nu_init, Lmax, E, drawPlot=True, savePlot=False):
 
     numPoints = 100000
     nu_e = nu(0, r'$\nu_e$')
@@ -157,7 +174,10 @@ def plotOscillations(nu_init, Lmax, E, drawPlot=True):
         plt.ylim([-0.1, 1.1])
         plt.legend()
         ax = plt.gca()
-        ax.set_xscale('log')    
+        ax.set_xscale('log')
+        if savePlot:
+            plt.savefig('oscillation.eps', format='eps', dpi=1000)
+
 
         plt.figure()
         plt.plot(Ls, mean_e, 'b', label = nu_init.name+r'$\rightarrow$'+nu_e.name)
@@ -170,7 +190,10 @@ def plotOscillations(nu_init, Lmax, E, drawPlot=True):
         plt.ylim([-0.1, 1.1])
         plt.legend()
         ax = plt.gca()
-        #ax.set_xscale('log')
+        ax.set_xscale('log')
+
+        if savePlot:
+            plt.savefig('integrated_oscillation.eps', format='eps', dpi=1000)
         
     return Ls, probs_e, probs_mu, probs_tau
 
