@@ -40,17 +40,64 @@ class nu:
     def __init__(self, index, label):
         self.index = index
         self.name = label    
+
+
+def luminosityCalcs():
+    aveEnergy = 10
+    """
+    luminosity in ergs per second.
+    1 erg = 1e-7 joules
+    1 joule = 6.24150934e18 electron volts
+    1 erg = 6.24150934e11 electron volts
+    1 erg = 6.24150934e5 MeV
+
+    So 1000e50 ergs / sec = 6241.50934e55 MeV / sec
+    But average neutrino energy = 10 MeV / neutrino
+    => 1000e50 ergs / sec = 6.24e57 neutrinos / sec    
+    """
+
+    nu_e = nu(0, r'$\nu_e$')
+    nu_e_bar = nu(0, r'$\bar{\nu_e}$')
+    nu_x = nu(0, r'$\nu_x$')
+    aveEnergy = []
+    lum_nu_e     = [ 0, 5000, 560, 510, 400, 270, 170, 120, 110, 105, 100,  95,   90,   85,  80,  75,  70]
+    lum_nu_e_bar = [ 0,    0, 450, 600, 460, 300, 180, 130, 120, 115, 110, 105,  100,   95,  90,  85,  80]
+    lum_nu_x     = [ 0,  200, 410, 490, 400, 270, 170, 120, 110, 105, 100,  95,   90,   85,  80,  75,  70]
+    E_nu_e       = [10,   12, 9.2,  11,  12,12.2,12.2,12.7,12.8,12.8,12.8,12.8,12.9, 12.9, 12.9, 12.9,12.9] 
+    E_nu_e_bar   = [10,   11,11.8,13.8,14.8,15.2,15.4,15.8,16.0,16.0,16.0,16.0,16.1,16.2, 16.3, 16.4, 16.5]
+    E_nu_x       = [14,   15,15.6,17.8,18.7,19.3,20.0,20.2,20.6,21.4,22.2,23.0,23.3,23.6, 23.9, 24.2, 24.5]
     
+    time         = [0, 0.04, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0,  1.1,  1.2, 1.3, 1.4, 1.5]
+    #time = [0.1 * i for i in xrange(16)]
+    plt.figure()
+    plt.plot(time, lum_nu_e, label = nu_e.name)
+    plt.plot(time, lum_nu_e_bar, label = nu_e_bar.name)
+    plt.plot(time, lum_nu_x, '-', label = nu_x.name)    
+    plt.title('Supernova neutrino luminosity as a function of time')
+    plt.ylabel('Luminosity ($10^{50}$ erg / sec)')
+    plt.xlabel('Time (s)')
+    plt.legend()
+
+    plt.figure()
+    plt.plot(time, E_nu_e, label = nu_e.name)
+    plt.plot(time, E_nu_e_bar, label = nu_e_bar.name)
+    plt.plot(time, E_nu_x, label = nu_x.name)    
+    plt.title(r'Average $\nu$ energy as a function of time')
+    plt.ylabel('Energy (MeV)')
+    plt.xlabel('Time (s)')
+    plt.legend()
+    
+
+        
 def main():
+
     plt.ion()
-    mean = 10
-    sigma = 5
-    vals = [generateEnergyDistribution(mean, sigma) for i in xrange(100000)]
-    plt.hist(vals, bins=100)
-
-    
-
-    
+    luminosityCalcs()
+    #oldmain()
+    #mean = 10
+    #sigma = 5
+    #vals = [generateEnergyDistribution(mean, sigma) for i in xrange(100000)]
+    #plt.hist(vals, bins=100)
         
 def oldmain():
     """"
@@ -65,17 +112,17 @@ def oldmain():
 
     #E = 10 # MeV
     #E = 0.3 # MeV
-    E = 10 # MeV
+    E = 15 # MeV
     LNominalMeters = 1.5428e21 #meters
 
     nu_e = nu(0, r'$\nu_e$')
     nu_mu = nu(1, r'$\nu_{\mu}$')
     nu_tau = nu(2, r'$\nu_{\tau}$')
-
+    
     #Losc = 983459.230639132 #156522.39788557024 #49822.626656169865
     Losc = 100*math.pi*E/(1.27*min(dmSquared_21, dmSquared_32))
     
-    plotOscillations(nu_e, Losc, E) #, savePlot=True)
+    plotOscillations(nu_e, Losc, E, savePlot=True)
     #plotOscillations(nu_mu, Losc, E)
     #plotOscillations(nu_tau, Losc, E)
 
@@ -184,7 +231,7 @@ def plotOscillations(nu_init, Lmax, E, drawPlot=True, savePlot=False):
         plt.plot(Ls, mean_mu, 'g', label = nu_init.name+r'$\rightarrow$'+nu_mu.name)
         plt.plot(Ls, mean_tau, 'r', label = nu_init.name+r'$\rightarrow$'+nu_tau.name)
         #plt.plot(Ls, probsSum, 'cyan', label = 'Sum')
-        plt.title('Integrated oscillation probablilties for a ' + nu_init.name + ' of energy ' + str(E) + ' MeV')
+        plt.title('Oscillation probablilties integrated over $10^{5}$m for a ' + str(E) + ' MeV ' + nu_init.name)
         plt.xlabel('Distance, L (m)')
         plt.ylabel('Oscillation probabililty')
         plt.ylim([-0.1, 1.1])
