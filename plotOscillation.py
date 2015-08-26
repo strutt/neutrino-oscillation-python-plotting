@@ -214,40 +214,37 @@ def integrateOverDistance(arr, distance, dx):
 
 def plotOscillations2(nu_init, Lmax, E, deltaE = 0, drawPlot=True, savePlot=False):
 
-    numPoints = 10000
-    numEnergyPoints = 10000
+    numPoints = 1000
+    numEnergyPoints = 1000
     
     nu_e = nu(0, r'$\nu_e$')
     nu_mu = nu(1, r'$\nu_{\mu}$')
     nu_tau = nu(2, r'$\nu_{\tau}$')
 
-    Ls = [i*Lmax/numPoints for i in xrange(numPoints)]
+    logLMax = math.log10(Lmax)
+    Ls = [pow(10, i*logLMax/numPoints) for i in xrange(numPoints)]
+    #print Ls
+    #print Ls
 
     probs_e = [0 for L in Ls]
     probs_mu = [0 for L in Ls]
     probs_tau = [0 for L in Ls]
     
     Es = [generateEnergyDistribution(E, deltaE) for i in xrange(numEnergyPoints)]
-    (nums, bins, patches) = plt.hist(Es, bins=20)
-    print patches
-    print nums
-    print bins
+    plt.figure()
+    plt.hist(Es, bins=10)
+    
+    for Eval in Es:
+        probs_e2 = [transitionProb(L, Eval, nu_init, nu_e) for L in Ls]
+        probs_mu2 = [transitionProb(L, Eval, nu_init, nu_mu) for L in Ls]
+        probs_tau2 = [transitionProb(L, Eval, nu_init, nu_tau) for L in Ls]
+        probs_e = [a+b for a, b in zip(probs_e, probs_e2)]
+        probs_mu = [a+b for a, b in zip(probs_mu, probs_mu2)]
+        probs_tau = [a+b for a, b in zip(probs_tau, probs_tau2)]
 
-    for num, binVal in zip(nums, bins):
-        if num > 0:
-            print num, binVal
-            probs_e2 = [transitionProb(L, binVal, nu_init, nu_e) for L in Ls]
-            probs_mu2 = [transitionProb(L, binVal, nu_init, nu_mu) for L in Ls]
-            probs_tau2 = [transitionProb(L, binVal, nu_init, nu_tau) for L in Ls]
-            probs_e = [a+(b*num) for a, b in zip(probs_e, probs_e2)]
-            probs_mu = [a+(b*num) for a, b in zip(probs_mu, probs_mu2)]
-            probs_tau = [a+(b*num) for a, b in zip(probs_tau, probs_tau2)]
-
-    total = sum(nums)
-    print total
-    probs_e = [a/total for a in probs_e]
-    probs_mu = [a/total for a in probs_mu]
-    probs_tau = [a/total for a in probs_tau]
+    probs_e = [a/numEnergyPoints for a in probs_e]
+    probs_mu = [a/numEnergyPoints for a in probs_mu]
+    probs_tau = [a/numEnergyPoints for a in probs_tau]
         
     #probsSum = [a+b+c for a, b, c in zip(probs_e, probs_mu, probs_tau)]
 
@@ -264,7 +261,7 @@ def plotOscillations2(nu_init, Lmax, E, deltaE = 0, drawPlot=True, savePlot=Fals
         plt.ylim([-0.1, 1.1])
         plt.legend()
         ax = plt.gca()
-        #ax.set_xscale('log')
+        ax.set_xscale('log')
         if savePlot:
             plt.savefig('oscillation.eps', format='eps', dpi=1000)
 
