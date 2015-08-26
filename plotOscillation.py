@@ -141,9 +141,9 @@ def oldmain():
     #Losc = 983459.230639132 #156522.39788557024 #49822.626656169865
     #Losc = 100*math.pi*E/(1.27*min(dmSquared_21, dmSquared_32))
     #Losc = 1.54283879e+21 # 50 kpc
-    Losc = 1e10
+    Losc = 1e8
     
-    #plotOscillations(nu_e, Losc, E)#, savePlot=True)
+    plotOscillations(nu_e, Losc, E)#, savePlot=True)
     #plotOscillations(nu_mu, Losc, E)
     #plotOscillations(nu_tau, Losc, E)
     
@@ -214,18 +214,62 @@ def integrateOverDistance(arr, distance, dx):
 
 def plotOscillations2(nu_init, Lmax, E, deltaE = 0, drawPlot=True, savePlot=False):
 
-    numPoints = 1000
-    numEnergyPoints = 1000
+    numPoints = 100000 #100000
+    numEnergyPoints = 1
     
     nu_e = nu(0, r'$\nu_e$')
     nu_mu = nu(1, r'$\nu_{\mu}$')
     nu_tau = nu(2, r'$\nu_{\tau}$')
 
-    logLMax = math.log10(Lmax)
-    Ls = [pow(10, i*logLMax/numPoints) for i in xrange(numPoints)]
+    Ls = [x*Lmax/numPoints for x in xrange(numPoints)]    
+    #logLMax = math.log10(Lmax)
+    #Ls = [pow(10, i*logLMax/numPoints) for i in xrange(numPoints)]
+    
     #print Ls
     #print Ls
 
+    probs_e = [transitionProb(L, E, nu_init, nu_e) for L in Ls]
+    probs_mu = [transitionProb(L, E, nu_init, nu_mu) for L in Ls]
+    probs_tau = [transitionProb(L, E, nu_init, nu_tau) for L in Ls]
+    if drawPlot or True:
+        plt.figure()
+        plt.plot(Ls, probs_e, 'b', label = nu_init.name+r'$\rightarrow$'+nu_e.name)
+        plt.plot(Ls, probs_mu, 'g', label = nu_init.name+r'$\rightarrow$'+nu_mu.name)
+        plt.plot(Ls, probs_tau, 'r', label = nu_init.name+r'$\rightarrow$'+nu_tau.name)
+        plt.title('Oscillation probablilties for a ' + nu_init.name + ' of energy ' + str(E) + ' MeV')
+        plt.xlabel('Distance, L (m)')
+        plt.ylabel('Oscillation probabililty')
+        plt.ylim([-0.1, 1.1])
+        plt.legend()
+        ax = plt.gca()
+        ax.set_xscale('log')
+        if savePlot:
+            plt.savefig('oscillation.eps', format='eps', dpi=1000)
+    
+    
+
+    dx = Ls[1]-Ls[0]
+    mean_e = integrateOverDistance(probs_e, 1e5, dx)
+    mean_mu = integrateOverDistance(probs_mu, 1e5, dx)
+    mean_tau = integrateOverDistance(probs_tau, 1e5, dx)    
+	
+    if drawPlot or True:
+        plt.figure()
+        plt.plot(Ls, mean_e, 'b', label = nu_init.name+r'$\rightarrow$'+nu_e.name)
+        plt.plot(Ls, mean_mu, 'g', label = nu_init.name+r'$\rightarrow$'+nu_mu.name)
+        plt.plot(Ls, mean_tau, 'r', label = nu_init.name+r'$\rightarrow$'+nu_tau.name)
+        plt.title('Oscillation probablilties for a ' + nu_init.name + ' of energy ' + str(E) + ' MeV integrated over $\Delta L$ = 100km')
+        plt.xlabel('Distance, L (m)')
+        plt.ylabel('Oscillation probabililty')
+        plt.ylim([-0.1, 1.1])
+        plt.legend()
+        ax = plt.gca()
+        ax.set_xscale('log')
+        if savePlot:
+            plt.savefig('oscillation.eps', format='eps', dpi=1000)
+	        
+    return 0
+            
     probs_e = [0 for L in Ls]
     probs_mu = [0 for L in Ls]
     probs_tau = [0 for L in Ls]
@@ -235,8 +279,8 @@ def plotOscillations2(nu_init, Lmax, E, deltaE = 0, drawPlot=True, savePlot=Fals
     plt.hist(Es, bins=10)
     
     for Eval in Es:
-        probs_e2 = [transitionProb(L, Eval, nu_init, nu_e) for L in Ls]
-        probs_mu2 = [transitionProb(L, Eval, nu_init, nu_mu) for L in Ls]
+        probs_e2 = [transitionProb(L, Eval, nu_init, nu_e) for L in Ls]    
+        probs_mu2 = [transitionProb(L, Eval, nu_init, nu_mu) for L in Ls]  
         probs_tau2 = [transitionProb(L, Eval, nu_init, nu_tau) for L in Ls]
         probs_e = [a+b for a, b in zip(probs_e, probs_e2)]
         probs_mu = [a+b for a, b in zip(probs_mu, probs_mu2)]
@@ -246,16 +290,13 @@ def plotOscillations2(nu_init, Lmax, E, deltaE = 0, drawPlot=True, savePlot=Fals
     probs_mu = [a/numEnergyPoints for a in probs_mu]
     probs_tau = [a/numEnergyPoints for a in probs_tau]
         
-    #probsSum = [a+b+c for a, b, c in zip(probs_e, probs_mu, probs_tau)]
-
-    dx = Ls[1]-Ls[0]
 
     if drawPlot or True:
         plt.figure()
         plt.plot(Ls, probs_e, 'b', label = nu_init.name+r'$\rightarrow$'+nu_e.name)
         plt.plot(Ls, probs_mu, 'g', label = nu_init.name+r'$\rightarrow$'+nu_mu.name)
         plt.plot(Ls, probs_tau, 'r', label = nu_init.name+r'$\rightarrow$'+nu_tau.name)
-        plt.title('Oscillation probablilties for a ' + nu_init.name + ' of energy ' + str(E) + ' MeV')
+        plt.title('Oscillation probablilties for a ' + nu_init.name + ' of energy <' + str(E) + '> MeV')
         plt.xlabel('Distance, L (m)')
         plt.ylabel('Oscillation probabililty')
         plt.ylim([-0.1, 1.1])
@@ -307,7 +348,7 @@ def plotOscillations(nu_init, Lmax, E, drawPlot=True, savePlot=False):
         plt.ylim([-0.1, 1.1])
         plt.legend()
         ax = plt.gca()
-        #ax.set_xscale('log')
+        ax.set_xscale('log')
         if savePlot:
             plt.savefig('oscillation.eps', format='eps', dpi=1000)
 
@@ -323,7 +364,7 @@ def plotOscillations(nu_init, Lmax, E, drawPlot=True, savePlot=False):
         plt.ylim([-0.1, 1.1])
         plt.legend()
         ax = plt.gca()
-        #ax.set_xscale('log')
+        ax.set_xscale('log')
 
         if savePlot:
             plt.savefig('integrated_oscillation.eps', format='eps', dpi=1000)
