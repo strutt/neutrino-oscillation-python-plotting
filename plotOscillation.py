@@ -23,6 +23,21 @@ U = [[c12*c13, s12*c13, s13],
      [-s12*c23-c12*s23*s13, c12*c23-s12*s23*s13, s23*c13],
      [s12*s23-c12*c23*s13, -c12*s23-s12*c23*s13, c23*c13]]
 
+P = [[0, 0, 0],
+     [0, 0, 0],
+     [0, 0, 0]]
+
+for a in xrange(3):
+    for b in xrange(3):
+        for i in xrange(3):
+            P[a][b] += U[a][i]*U[a][i]*U[b][i]*U[b][i]
+print P[0]
+print P[1]
+print P[2]
+print sum(P[0]), sum(P[1]), sum(P[2])
+print P[0][0]+P[1][0]+P[2][0], P[0][1]+P[1][1]+P[2][1], P[0][2]+P[1][2]+P[2][2] 
+
+#quit()
 #UH = np.transpose(U)
 #print U
 #print UH
@@ -49,7 +64,7 @@ class nu:
 
 
 def luminosityCalcs():
-    aveEnergy = 10
+
     """
     luminosity in ergs per second
     1 erg = 1e-7 joules
@@ -65,7 +80,7 @@ def luminosityCalcs():
     nu_e = nu(0, r'$\nu_e$')
     nu_e_bar = nu(0, r'$\bar{\nu_e}$')
     nu_x = nu(0, r'$\nu_x$')
-    aveEnergy = []
+
     lum_nu_e = [0,500,5000,1000,560,510,400,270,170,120,110,105,100,95,90,85,80,75,70]
     lum_nu_e_bar = [0,0,0,120,450,600,460,300,180,130,120,115,110,105,100,95,90,85,80]
     lum_nu_x = [0,0,200,260,410,490,400,270,170,120,110,105,100,95,90,85,80,75,70]
@@ -73,6 +88,7 @@ def luminosityCalcs():
     E_nu_e_bar = [10,11,11,11.2,11.8,13.8,14.8,15.2,15.4,15.8,16.0,16.0,16.0,16.0,16.1,16.2,16.3,16.4,16.5]
     E_nu_x = [14,15,15,15,15.6,17.8,18.7,19.3,20.0,20.2,20.6,21.4,22.2,23.0,23.3,23.6,23.9,24.2,24.5]
     time = [0,0.03,0.04,0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,1.1,1.2,1.3,1.4,1.5]
+    """
     plt.figure()
     plt.plot(time, lum_nu_e, label = nu_e.name)
     plt.plot(time, lum_nu_e_bar, label = nu_e_bar.name)
@@ -92,31 +108,47 @@ def luminosityCalcs():
     ax = plt.gca()
     ax.set_ylim(5, 27)
     plt.legend()
+    """
 
     erg_to_MeV = 6241.50934e5
     num_prod_e = [erg_to_MeV*lum/E for lum, E in zip(lum_nu_e, E_nu_e)]
     num_prod_e_bar = [erg_to_MeV*lum/E for lum, E in zip(lum_nu_e_bar, E_nu_e_bar)]
     num_prod_x = [erg_to_MeV*lum/E for lum, E in zip(lum_nu_x, E_nu_x)]
+    sum_prod = [a+b+c for a, b, c in zip(num_prod_e, num_prod_e_bar, num_prod_x)]
+
+    num_prod_e2 = [num_e*P[0][0] + 0.5*num_x*(P[1][0]+P[2][0]) for num_e, num_x in zip(num_prod_e, num_prod_x)]
+    num_prod_e_bar2 = [num_e_bar*P[0][0] + 0.5*num_x*(P[1][0]+P[2][0]) for num_e_bar, num_x in zip(num_prod_e_bar, num_prod_x)]
+    num_prod_x2 = [num_x*(P[0][1]+P[0][2])
+                   + (num_e_bar+num_e)*(P[0][1]+P[0][2])
+                   for num_e, num_e_bar, num_x in zip(num_prod_e, num_prod_e_bar, num_prod_x)]
+    sum_prod2 = [a+b+c for a, b, c in zip(num_prod_e2, num_prod_e_bar2, num_prod_x2)]
+
+    #print num_prod_e[-1], num_prod_e_bar[-1], num_prod_x[-1], sum_prod[-1]
+    #print num_prod_e2[-1], num_prod_e_bar2[-1], num_prod_x2[-1], sum_prod2[-1]
+
     plt.figure()
-    plt.plot(time, num_prod_e, label = nu_e.name)
-    plt.plot(time, num_prod_e_bar, label = nu_e_bar.name)
-    plt.plot(time, num_prod_x, label = nu_x.name)    
-    plt.title(r'Supernova $\nu$ emission as a function of time')
+    plt.plot(time, num_prod_e, label = nu_e.name + ' initial')
+    plt.plot(time, num_prod_e_bar, label = nu_e_bar.name + ' initial')
+    plt.plot(time, num_prod_x, label = nu_x.name + ' initial')
+    #plt.plot(time, sum_prod, label = 'total flux initial')
+    plt.plot(time, num_prod_e2, 'b--', label = nu_e.name + ' propagated')
+    plt.plot(time, num_prod_e_bar2, 'g--', label = nu_e_bar.name + ' propagated')
+    plt.plot(time, num_prod_x2, 'r--', label = nu_x.name + ' propagated')
+    #plt.plot(time, sum_prod2, label = 'total flux propagated')    
+    plt.title(r'Supernova $\nu_{e}$, $\bar{\nu_{e}}$, $\nu_{x}$ emission as a function of time')
     plt.ylabel(r'Number of $\nu$s')
     plt.xlabel('Time (s)')
     ax = plt.gca()
     ax.set_yscale('log')
     plt.legend()
+    plt.savefig('supernova_flux_prop.eps', format='eps', dpi=1000)    
 
 def main():
 
     plt.ion()
-    #luminosityCalcs()
-    oldmain()
-    #mean = 10
-    #sigma = 5
-    #vals = [generateEnergyDistribution(mean, sigma) for i in xrange(100000)]
-    #plt.hist(vals, bins=100)
+    luminosityCalcs()
+    #oldmain()
+    
         
 def oldmain():
     """"
