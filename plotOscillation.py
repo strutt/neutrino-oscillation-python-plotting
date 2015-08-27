@@ -19,9 +19,9 @@ s13 = math.sin(theta_13)
 c23 = math.cos(theta_23)
 s23 = math.sin(theta_23)
 
-U = [[c12*c13, s12*c13, s13],
-     [-s12*c23-c12*s23*s13, c12*c23-s12*s23*s13, s23*c13],
-     [s12*s23-c12*c23*s13, -c12*s23-s12*c23*s13, c23*c13]]
+U = [[c12*c13               , s12*c13                  , s13     ],
+     [-s12*c23-c12*s23*s13  , c12*c23-s12*s23*s13      , s23*c13 ],
+     [s12*s23-c12*c23*s13   , -c12*s23-s12*c23*s13     , c23*c13 ]]
 
 P = [[0, 0, 0],
      [0, 0, 0],
@@ -116,11 +116,13 @@ def luminosityCalcs():
     num_prod_x = [erg_to_MeV*lum/E for lum, E in zip(lum_nu_x, E_nu_x)]
     sum_prod = [a+b+c for a, b, c in zip(num_prod_e, num_prod_e_bar, num_prod_x)]
 
-    num_prod_e2 = [num_e*P[0][0] + 0.5*num_x*(P[1][0]+P[2][0]) for num_e, num_x in zip(num_prod_e, num_prod_x)]
-    num_prod_e_bar2 = [num_e_bar*P[0][0] + 0.5*num_x*(P[1][0]+P[2][0]) for num_e_bar, num_x in zip(num_prod_e_bar, num_prod_x)]
-    num_prod_x2 = [num_x*(P[0][1]+P[0][2])
+    num_prod_e2 = [num_e*P[0][0] + 0.25*num_x*(P[1][0]+P[2][0]) for num_e, num_x in zip(num_prod_e, num_prod_x)]
+    num_prod_e_bar2 = [num_e_bar*P[0][0] + 0.25*num_x*(P[1][0]+P[2][0]) for num_e_bar, num_x in zip(num_prod_e_bar, num_prod_x)]
+    num_prod_x2 = [num_x*0.5*(P[1][1] + P[1][2] + P[2][1] + P[2][2])
                    + (num_e_bar+num_e)*(P[0][1]+P[0][2])
                    for num_e, num_e_bar, num_x in zip(num_prod_e, num_prod_e_bar, num_prod_x)]
+
+    
     sum_prod2 = [a+b+c for a, b, c in zip(num_prod_e2, num_prod_e_bar2, num_prod_x2)]
 
     #print num_prod_e[-1], num_prod_e_bar[-1], num_prod_x[-1], sum_prod[-1]
@@ -130,18 +132,33 @@ def luminosityCalcs():
     plt.plot(time, num_prod_e, label = nu_e.name + ' initial')
     plt.plot(time, num_prod_e_bar, label = nu_e_bar.name + ' initial')
     plt.plot(time, num_prod_x, label = nu_x.name + ' initial')
-    #plt.plot(time, sum_prod, label = 'total flux initial')
+    plt.plot(time, sum_prod, label = 'total flux initial')
     plt.plot(time, num_prod_e2, 'b--', label = nu_e.name + ' propagated')
     plt.plot(time, num_prod_e_bar2, 'g--', label = nu_e_bar.name + ' propagated')
     plt.plot(time, num_prod_x2, 'r--', label = nu_x.name + ' propagated')
-    #plt.plot(time, sum_prod2, label = 'total flux propagated')    
+    plt.plot(time, sum_prod2, label = 'total flux propagated')
     plt.title(r'Supernova $\nu_{e}$, $\bar{\nu_{e}}$, $\nu_{x}$ emission as a function of time')
     plt.ylabel(r'Number of $\nu$s')
     plt.xlabel('Time (s)')
     ax = plt.gca()
-    ax.set_yscale('log')
+    #ax.set_yscale('log')
     plt.legend()
-    plt.savefig('supernova_flux_prop.eps', format='eps', dpi=1000)    
+    plt.savefig('supernova_flux_prop.eps', format='eps', dpi=1000)
+
+    ratio_nu_e = [a/(b/2) if b > 0 else 0 for a, b in zip(num_prod_e2, num_prod_x2)]
+    ratio_nu_e_bar = [a/(b/2) if b > 0 else 0 for a, b in zip(num_prod_e_bar2, num_prod_x2)]
+    
+    plt.figure()
+    plt.plot(time, ratio_nu_e, 'b--', label = nu_e.name + ' propagated ratio')
+    plt.plot(time, ratio_nu_e_bar, 'g--', label = nu_e_bar.name + ' propagated ratio')
+    plt.title(r'Flavor ratio of propogated $\nu$s')
+    plt.ylabel(r'Ratio')
+    plt.xlabel('Time (s)')
+    ax = plt.gca()
+    #ax.set_yscale('log')
+    plt.legend()
+    plt.savefig('supernova_flux_ratio.eps', format='eps', dpi=1000)    
+    
 
 def main():
 
